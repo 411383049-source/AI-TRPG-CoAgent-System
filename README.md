@@ -24,10 +24,23 @@
 
 ---
 
+## 🌐 線上互動網站 (GitHub Pages)
+👉 **點此進入互動網站：https://411383049-source.github.io/AI-TRPG-CoAgent-System/**
+*(亦可直接雙擊本地的 [`index.html`](./index.html) 開啟完整互動網頁！)*
+
+網站內建四大功能分頁：
+1. **⚔️ 雙視窗互動跑團模擬器**：左視窗為「地下城主 (DM) ＆ 隊伍頻道」，右視窗即時顯示「獨立 AI 隊友【萊拉】的無劇透內心戲與視角」，並附帶 D20 擲骰器與互動戰術按鈕！
+2. **📄 專案報告 (5大重點)**：線上閱讀並支援一鍵下載 Word (`.docx`) 與列印 PDF。
+3. **📊 11/02 分享投影片**：內嵌完整簡報預覽，支援全螢幕播放與下載 PowerPoint (`.pptx`)。
+4. **🛠️ Prompt 與架構設計**：展示 Multi-Agent 記憶隔離架構圖與可複製的 Subagent Prompt 模板。
+
+---
+
 ## 📂 專案檔案導覽
 
 | 檔案 / 資料夾 | 說明 |
 | :--- | :--- |
+| 🌐 [`index.html`](./index.html) | **專案主網站入口**：整合雙視窗 D&D 跑團互動模擬器、報告、投影片與架構圖 |
 | 📄 [`report/project_report.docx`](./report/project_report.docx) | **完整專案報告 (Word 檔)**：包含做什麼、給誰用、怎麼跟 AI 協作、查了什麼、下一步規劃 |
 | 📄 [`report/project_report.md`](./report/project_report.md) | **完整專案報告 (Markdown 版)**：方便直接在 GitHub 上閱讀 |
 | 🌐 [`report/project_report.html`](./report/project_report.html) | **完整專案報告 (可列印網頁版)**：支援直接轉存 PDF |
