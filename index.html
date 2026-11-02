@@ -3,20 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>⚔️ 龍與地下城：失落的礦坑 ｜ 雙視窗 AI 隊友 TRPG 遊戲</title>
+  <title>⚔️ 龍與地下城：失落的礦坑 ｜ 雙視窗 AI 隊友視覺化 TRPG 遊戲</title>
   <style>
     :root {
-      --bg-deep: #07090e;
-      --bg-panel: #111622;
-      --bg-card: #1b2234;
-      --border: #2e3a59;
+      --bg-deep: #060911;
+      --bg-panel: #101624;
+      --bg-card: #1a2336;
+      --border: #2e3d5c;
       --gold: #f59e0b;
       --gold-bright: #fbbf24;
       --primary: #6366f1;
       --lyra-purple: #c084fc;
       --hp-green: #22c55e;
-      --hp-red: #ef4444;
-      --text: #f1f5f9;
+      --text: #f8fafc;
       --muted: #94a3b8;
     }
 
@@ -26,26 +25,28 @@
       font-family: "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", sans-serif;
       background-color: var(--bg-deep);
       color: var(--text);
-      height: 100vh;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
       background-image:
-        radial-gradient(circle at 10% 10%, rgba(99, 102, 241, 0.14) 0%, transparent 45%),
-        radial-gradient(circle at 90% 85%, rgba(192, 132, 252, 0.12) 0%, transparent 45%);
+        radial-gradient(circle at 15% 10%, rgba(99, 102, 241, 0.16) 0%, transparent 45%),
+        radial-gradient(circle at 85% 90%, rgba(192, 132, 252, 0.14) 0%, transparent 45%);
     }
 
-    /* Top HUD Bar */
+    /* Top HUD Header */
     .hud-header {
-      background: rgba(17, 22, 34, 0.95);
+      background: rgba(16, 22, 36, 0.96);
       border-bottom: 1px solid var(--border);
-      padding: 10px 20px;
+      padding: 10px 22px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 16px;
+      gap: 14px;
       flex-wrap: wrap;
-      z-index: 20;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(10px);
     }
 
     .game-title {
@@ -58,10 +59,10 @@
     }
 
     .chapter-badge {
-      background: rgba(245, 158, 11, 0.15);
+      background: rgba(245, 158, 11, 0.18);
       border: 1px solid var(--gold);
       color: var(--gold-bright);
-      padding: 3px 10px;
+      padding: 3px 12px;
       border-radius: 999px;
       font-size: 12px;
       font-weight: 700;
@@ -70,7 +71,8 @@
     .hud-controls {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
     .btn-top {
@@ -79,7 +81,7 @@
       border: 1px solid var(--border);
       padding: 6px 12px;
       border-radius: 8px;
-      font-size: 13px;
+      font-size: 12.5px;
       cursor: pointer;
       font-family: inherit;
       text-decoration: none;
@@ -97,107 +99,307 @@
     .btn-top.api-active {
       border-color: var(--hp-green);
       color: #86efac;
-      background: rgba(34, 197, 94, 0.12);
+      background: rgba(34, 197, 94, 0.15);
     }
 
-    /* Character Status Strip */
-    .status-strip {
+    /* ================= VISUAL STAGE & BATTLEMAP ================= */
+    .visual-stage-wrapper {
       display: grid;
-      grid-template-columns: 1fr 1fr 260px;
-      gap: 12px;
-      padding: 12px 20px;
-      background: rgba(11, 15, 25, 0.8);
-      border-bottom: 1px solid var(--border);
+      grid-template-columns: 1fr 340px;
+      gap: 14px;
+      padding: 14px 20px 6px 20px;
+      max-width: 1600px;
+      width: 100%;
+      margin: 0 auto;
     }
 
-    @media (max-width: 1024px) {
-      body { height: auto; overflow: auto; }
-      .status-strip { grid-template-columns: 1fr; }
+    @media (max-width: 1100px) {
+      .visual-stage-wrapper { grid-template-columns: 1fr; }
     }
 
-    .hero-panel {
-      background: var(--bg-panel);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 14px;
+    /* Main Visual Novel Scene Canvas */
+    .scene-canvas {
+      position: relative;
+      height: 280px;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 2px solid var(--border);
+      box-shadow: 0 12px 35px rgba(0,0,0,0.65);
+      background: #090d16;
+    }
+
+    .scene-bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 40%;
+      transition: transform 0.8s ease, filter 0.5s ease;
+      filter: brightness(0.85) contrast(1.08);
+    }
+
+    .scene-canvas:hover .scene-bg {
+      transform: scale(1.03);
+    }
+
+    .scene-vignette {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(6, 9, 17, 0.95) 0%, rgba(6, 9, 17, 0.25) 45%, rgba(6, 9, 17, 0.5) 100%);
+      pointer-events: none;
+    }
+
+    /* Spell / Combat FX Overlay */
+    .fx-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .fx-layer.active {
+      opacity: 1;
+    }
+
+    .fx-banner {
+      background: rgba(15, 23, 42, 0.88);
+      border: 2px solid var(--gold-bright);
+      color: #fff;
+      padding: 12px 28px;
+      border-radius: 999px;
+      font-size: 18px;
+      font-weight: 800;
+      box-shadow: 0 0 30px rgba(245, 158, 11, 0.7);
+      animation: pulsePop 0.5s ease;
+    }
+
+    @keyframes pulsePop {
+      0% { transform: scale(0.6); opacity: 0; }
+      70% { transform: scale(1.08); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Character Standees & Portraits on Stage */
+    .stage-characters {
+      position: absolute;
+      inset: 0;
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      gap: 12px;
+      align-items: flex-end;
+      padding: 14px 22px;
+      z-index: 5;
+      pointer-events: none;
     }
 
-    .hero-panel.paladin { border-left: 4px solid #3b82f6; }
-    .hero-panel.lyra { border-left: 4px solid var(--lyra-purple); }
+    .stage-hero-card {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(16, 22, 36, 0.88);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      border-radius: 12px;
+      max-width: 380px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      transition: transform 0.25s ease, border-color 0.25s ease;
+    }
 
-    .hero-meta h4 {
-      font-size: 15px;
-      margin-bottom: 4px;
+    .stage-hero-card.speaking {
+      border-color: var(--gold-bright);
+      box-shadow: 0 0 22px rgba(251, 191, 36, 0.45);
+      transform: translateY(-4px);
+    }
+
+    .portrait-frame {
+      width: 78px;
+      height: 78px;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 2px solid var(--gold);
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .portrait-frame.lyra-frame {
+      border-color: var(--lyra-purple);
+    }
+
+    .portrait-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .hero-stats {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 195px;
+    }
+
+    .hero-stats h4 {
+      font-size: 14px;
       display: flex;
       align-items: center;
       gap: 6px;
+      color: #fff;
     }
 
-    .hero-meta p {
-      font-size: 12px;
+    .hero-stats .sub-role {
+      font-size: 11.5px;
       color: var(--muted);
     }
 
-    .bars-box {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      min-width: 190px;
-    }
-
-    .bar-row {
+    .bar-line {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      font-size: 12px;
+      gap: 6px;
+      font-size: 11.5px;
       font-weight: 700;
-      gap: 8px;
     }
 
-    .progress-track {
+    .bar-bg {
       flex: 1;
-      height: 8px;
-      background: #090d16;
-      border-radius: 999px;
+      height: 7px;
+      background: #060911;
+      border-radius: 99px;
       overflow: hidden;
       border: 1px solid #334155;
     }
 
-    .progress-fill {
+    .bar-fill {
       height: 100%;
       background: var(--hp-green);
-      transition: width 0.3s ease;
+      transition: width 0.35s ease;
     }
 
-    .progress-fill.mp { background: var(--lyra-purple); }
+    .bar-fill.mp { background: var(--lyra-purple); }
 
-    .stat-badge {
-      background: var(--bg-card);
+    .scene-location-banner {
+      position: absolute;
+      top: 12px;
+      left: 16px;
+      z-index: 6;
+      background: rgba(6, 9, 17, 0.8);
+      border: 1px solid rgba(251, 191, 36, 0.5);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #fef3c7;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Right Side: Tactical Mini-Map & D20 Box */
+    .tactical-sidebar {
+      background: var(--bg-panel);
       border: 1px solid var(--border);
-      padding: 2px 7px;
-      border-radius: 5px;
-      font-size: 11px;
-      color: #93c5fd;
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
     }
 
-    /* D20 Roller Widget */
-    .dice-widget {
+    .minimap-title {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #cbd5e1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .battle-grid {
+      position: relative;
+      height: 155px;
+      background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
+      border: 1px solid #334155;
+      border-radius: 10px;
+      overflow: hidden;
+      background-image:
+        linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+
+    .map-road {
+      position: absolute;
+      top: 40%;
+      left: 0;
+      right: 0;
+      height: 36px;
+      background: rgba(180, 83, 9, 0.28);
+      border-top: 1px dashed rgba(245, 158, 11, 0.35);
+      border-bottom: 1px dashed rgba(245, 158, 11, 0.35);
+    }
+
+    .token {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 15px;
+      font-weight: bold;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.6);
+      transition: all 0.5s ease;
+      cursor: pointer;
+    }
+
+    .token.paladin-tok {
+      background: #2563eb;
+      border: 2px solid #93c5fd;
+    }
+
+    .token.lyra-tok {
+      background: #9333ea;
+      border: 2px solid #e9d5ff;
+    }
+
+    .token.goblin-tok {
+      background: #dc2626;
+      border: 2px solid #fca5a5;
+    }
+
+    .token.goblin-tok.asleep {
+      background: #475569;
+      border-color: #94a3b8;
+      opacity: 0.65;
+    }
+
+    .token.horse-tok {
+      background: #78350f;
+      border: 1px solid #fbbf24;
+      font-size: 13px;
+    }
+
+    /* D20 Roller inside sidebar */
+    .dice-roller-bar {
       background: linear-gradient(135deg, #1e1b4b, #312e81);
       border: 1px solid #6366f1;
       border-radius: 10px;
-      padding: 8px 14px;
+      padding: 8px 12px;
       display: flex;
       align-items: center;
       gap: 12px;
     }
 
-    .d20-button {
-      width: 46px;
-      height: 46px;
+    .d20-btn {
+      width: 44px;
+      height: 44px;
       border-radius: 10px;
       border: none;
       background: var(--gold);
@@ -205,27 +407,30 @@
       font-size: 20px;
       font-weight: 900;
       cursor: pointer;
-      box-shadow: 0 0 15px rgba(245, 158, 11, 0.5);
+      box-shadow: 0 0 14px rgba(245, 158, 11, 0.5);
       transition: transform 0.2s;
     }
 
-    .d20-button:hover { transform: scale(1.08) rotate(8deg); }
+    .d20-btn:hover { transform: scale(1.08) rotate(10deg); }
 
-    .dice-info { font-size: 12px; color: #c7d2fe; }
-    .dice-info strong { display: block; font-size: 16px; color: #fef08a; margin-top: 2px; }
+    .dice-text { font-size: 12px; color: #c7d2fe; }
+    .dice-text strong { display: block; font-size: 15px; color: #fef08a; margin-top: 2px; }
 
-    /* Main Dual-Chat Arena */
+    /* ================= DUAL CHAT ARENA ================= */
     .arena {
       flex: 1;
       display: grid;
-      grid-template-columns: 1.4fr 1fr;
-      gap: 16px;
-      padding: 16px 20px;
-      overflow: hidden;
+      grid-template-columns: 1.38fr 1fr;
+      gap: 14px;
+      padding: 8px 20px 16px 20px;
+      max-width: 1600px;
+      width: 100%;
+      margin: 0 auto;
+      min-height: 420px;
     }
 
     @media (max-width: 1024px) {
-      .arena { grid-template-columns: 1fr; height: auto; overflow: visible; }
+      .arena { grid-template-columns: 1fr; }
     }
 
     .pane {
@@ -235,17 +440,18 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+      box-shadow: 0 10px 28px rgba(0,0,0,0.45);
+      height: 450px;
     }
 
     .pane-header {
-      padding: 12px 16px;
+      padding: 10px 16px;
       background: var(--bg-card);
       border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 14px;
+      font-size: 13.5px;
       font-weight: 700;
     }
 
@@ -266,25 +472,39 @@
 
     .log-stream {
       flex: 1;
-      padding: 16px;
+      padding: 14px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
 
     .bubble {
-      padding: 12px 15px;
+      padding: 11px 14px;
       border-radius: 10px;
-      font-size: 14px;
-      line-height: 1.65;
+      font-size: 13.5px;
+      line-height: 1.6;
       animation: popIn 0.25s ease;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
     }
 
     @keyframes popIn {
       from { opacity: 0; transform: translateY(6px); }
       to { opacity: 1; transform: translateY(0); }
     }
+
+    .bubble-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      object-fit: cover;
+      flex-shrink: 0;
+      border: 1px solid var(--gold);
+    }
+
+    .bubble-body { flex: 1; }
 
     .bubble.dm {
       background: rgba(30, 41, 59, 0.92);
@@ -295,11 +515,11 @@
       background: rgba(37, 99, 235, 0.22);
       border: 1px solid rgba(59, 130, 246, 0.45);
       align-self: flex-end;
-      max-width: 90%;
+      max-width: 92%;
     }
 
     .bubble.lyra {
-      background: rgba(88, 28, 135, 0.25);
+      background: rgba(88, 28, 135, 0.26);
       border-left: 4px solid var(--lyra-purple);
     }
 
@@ -307,13 +527,13 @@
       background: rgba(15, 23, 42, 0.9);
       border: 1px dashed #64748b;
       color: #cbd5e1;
-      font-size: 13px;
+      font-size: 12.8px;
     }
 
     .bubble-header {
       font-size: 11.5px;
       font-weight: 700;
-      margin-bottom: 5px;
+      margin-bottom: 4px;
       display: flex;
       justify-content: space-between;
       color: var(--muted);
@@ -323,20 +543,20 @@
     .bubble.lyra .bubble-header { color: #d8b4fe; }
     .bubble.player .bubble-header { color: #60a5fa; }
 
-    /* Interactive Action Dock */
+    /* Action Dock */
     .action-dock {
-      padding: 12px 16px;
-      background: #0b0f19;
+      padding: 10px 14px;
+      background: #090d16;
       border-top: 1px solid var(--border);
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
     }
 
     .choices-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 8px;
+      gap: 7px;
     }
 
     @media (max-width: 640px) {
@@ -347,9 +567,9 @@
       background: var(--bg-card);
       color: var(--text);
       border: 1px solid var(--border);
-      padding: 9px 12px;
+      padding: 8px 11px;
       border-radius: 8px;
-      font-size: 13px;
+      font-size: 12.5px;
       text-align: left;
       cursor: pointer;
       font-family: inherit;
@@ -357,7 +577,7 @@
     }
 
     .choice-btn:hover {
-      background: rgba(99, 102, 241, 0.22);
+      background: rgba(99, 102, 241, 0.24);
       border-color: var(--primary);
       transform: translateY(-1px);
     }
@@ -372,9 +592,9 @@
       background: var(--bg-panel);
       border: 1px solid var(--border);
       color: #fff;
-      padding: 9px 12px;
+      padding: 8px 12px;
       border-radius: 8px;
-      font-size: 13.5px;
+      font-size: 13px;
       font-family: inherit;
     }
 
@@ -382,7 +602,7 @@
       background: var(--primary);
       color: #fff;
       border: none;
-      padding: 0 18px;
+      padding: 0 16px;
       border-radius: 8px;
       font-weight: 700;
       cursor: pointer;
@@ -391,7 +611,7 @@
 
     .send-btn:hover { background: #4f46e5; }
 
-    /* Modal for API Key / Docs */
+    /* Modal */
     .modal-backdrop {
       position: fixed;
       inset: 0;
@@ -409,9 +629,9 @@
       background: var(--bg-panel);
       border: 1px solid var(--border);
       border-radius: 14px;
-      max-width: 560px;
+      max-width: 540px;
       width: 100%;
-      padding: 24px;
+      padding: 22px;
     }
 
     .modal-card h3 { margin-bottom: 10px; color: var(--gold-bright); }
@@ -427,71 +647,116 @@
       <span class="chapter-badge" id="scene-badge">第一章：三豬小徑的伏擊</span>
     </div>
     <div class="hud-controls">
-      <button class="btn-top" id="api-btn" onclick="openModal('api-modal')">🤖 切換 Gemini AI 即時生成模式</button>
-      <button class="btn-top" onclick="resetGame()">🔄 重新開始戰役</button>
+      <button class="btn-top" onclick="switchSceneImage('ambush')">🌲 場景：三豬小徑</button>
+      <button class="btn-top" onclick="switchSceneImage('cave')">🕳️ 場景：克拉格莫洞穴</button>
+      <button class="btn-top" id="api-btn" onclick="openModal('api-modal')">🤖 Gemini 即時模式</button>
+      <button class="btn-top" onclick="resetGame()">🔄 重新開始</button>
       <a class="btn-top" href="./slides/presentation_1102.html" target="_blank">📊 11/02 投影片</a>
       <a class="btn-top" href="./report/project_report.html" target="_blank">📄 專案報告</a>
     </div>
   </header>
 
-  <!-- Party Status Strip -->
-  <section class="status-strip">
-    <div class="hero-panel paladin">
-      <div class="hero-meta">
-        <h4>🛡️ 玩家（你）：人類聖騎士 <span class="stat-badge">Lv.1</span> <span class="stat-badge">AC 18</span></h4>
-        <p id="paladin-status-text">武器：長劍＋盾牌 ｜ 聖療術池：<strong id="lay-hands-val">5</strong>/5 點 ｜ 黃金：<strong id="gold-val">15</strong> gp</p>
+  <!-- ================= VISUAL NOVEL STAGE + BATTLEMAP ================= -->
+  <section class="visual-stage-wrapper">
+    <!-- Left: High-Fantasy Visual Novel Stage -->
+    <div class="scene-canvas">
+      <img id="scene-bg-img" class="scene-bg" src="./assets/scene_ambush.jpg" alt="D&D Scene Background">
+      <div class="scene-vignette"></div>
+
+      <div class="scene-location-banner" id="location-banner">
+        <span>🗺️ 當前場景：<strong>三豬小徑 (Triboar Trail) — 死馬伏擊點</strong></span>
       </div>
-      <div class="bars-box">
-        <div class="bar-row">
-          <span>HP</span>
-          <div class="progress-track"><div class="progress-fill" id="player-hp-bar" style="width: 100%;"></div></div>
-          <span id="player-hp-text">12 / 12</span>
+
+      <!-- FX Layer for Spells & Attacks -->
+      <div class="fx-layer" id="fx-layer">
+        <div class="fx-banner" id="fx-text">✨ 萊拉施展一環法術《睡眠術 Sleep》！</div>
+      </div>
+
+      <!-- Character Portraits on Stage -->
+      <div class="stage-characters">
+        <!-- Player Paladin Card -->
+        <div class="stage-hero-card" id="card-paladin">
+          <div class="portrait-frame">
+            <img src="./assets/paladin_portrait.jpg" alt="人類聖騎士">
+          </div>
+          <div class="hero-stats">
+            <h4>🛡️ 玩家：人類聖騎士 <span style="font-size:11px;color:#93c5fd;">AC 18</span></h4>
+            <span class="sub-role">長劍＋盾牌 ｜ 聖療池 <strong id="lay-hands-val">5</strong>/5 ｜ 💰 <strong id="gold-val">15</strong> gp</span>
+            <div class="bar-line">
+              <span>HP</span>
+              <div class="bar-bg"><div class="bar-fill" id="player-hp-bar" style="width:100%;"></div></div>
+              <span id="player-hp-text">12/12</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Companion Lyra Card -->
+        <div class="stage-hero-card speaking" id="card-lyra">
+          <div class="portrait-frame lyra-frame">
+            <img src="./assets/lyra_portrait.jpg" alt="萊拉・星語">
+          </div>
+          <div class="hero-stats">
+            <h4>🧝‍♀️ 隊友：萊拉 (Lyra) <span style="font-size:11px;color:#e9d5ff;">AC 15</span></h4>
+            <span class="sub-role">高等精靈法師 Lv.1（獨立 Subagent 視窗）</span>
+            <div class="bar-line">
+              <span>HP</span>
+              <div class="bar-bg"><div class="bar-fill" id="lyra-hp-bar" style="width:100%;"></div></div>
+              <span id="lyra-hp-text">7/7</span>
+            </div>
+            <div class="bar-line">
+              <span>法術</span>
+              <div class="bar-bg"><div class="bar-fill mp" id="lyra-mp-bar" style="width:50%;"></div></div>
+              <span id="lyra-mp-text">1/2</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="hero-panel lyra">
-      <div class="hero-meta">
-        <h4>🧝‍♀️ AI 隊友：萊拉・星語 (Lyra) <span class="stat-badge">高等精靈法師 Lv.1</span> <span class="stat-badge">AC 15 (法師護甲)</span></h4>
-        <p>戲法：火焰箭、魔法伎倆 ｜ 一環法術：睡眠術、魔法飛彈、法師護甲</p>
-      </div>
-      <div class="bars-box">
-        <div class="bar-row">
-          <span>HP</span>
-          <div class="progress-track"><div class="progress-fill" id="lyra-hp-bar" style="width: 100%;"></div></div>
-          <span id="lyra-hp-text">7 / 7</span>
+    <!-- Right: Tactical Battlemap + D20 Roller -->
+    <div class="tactical-sidebar">
+      <div>
+        <div class="minimap-title">
+          <span>⚔️ 即時戰術沙盤 (Tactical Map)</span>
+          <span id="enemy-count-badge" style="color:#fca5a5;font-size:11.5px;">哥布林伏兵 ×4</span>
         </div>
-        <div class="bar-row">
-          <span>法術位</span>
-          <div class="progress-track"><div class="progress-fill mp" id="lyra-mp-bar" style="width: 50%;"></div></div>
-          <span id="lyra-mp-text">1 / 2</span>
+        <div class="battle-grid" id="battle-grid" style="margin-top:6px;">
+          <div class="map-road"></div>
+          <!-- Tokens on Map -->
+          <div class="token paladin-tok" id="tok-paladin" style="top: 42%; left: 22%;" title="你（人類聖騎士）">🛡️</div>
+          <div class="token lyra-tok" id="tok-lyra" style="top: 44%; left: 8%;" title="隊友：萊拉 (精靈法師)">🧝‍♀️</div>
+          <div class="token horse-tok" id="tok-horse" style="top: 43%; left: 52%;" title="插滿黑羽箭的死馬">🐎</div>
+          <div class="token goblin-tok" id="tok-gob1" style="top: 14%; left: 62%;" title="哥布林弓箭手 #1">👺</div>
+          <div class="token goblin-tok" id="tok-gob2" style="top: 16%; left: 76%;" title="哥布林弓箭手 #2">👺</div>
+          <div class="token goblin-tok" id="tok-gob3" style="top: 72%; left: 66%;" title="哥布林弓箭手 #3">👺</div>
+          <div class="token goblin-tok" id="tok-gob4" style="top: 68%; left: 48%;" title="哥布林彎刀尖兵 #4">🗡️</div>
         </div>
       </div>
-    </div>
 
-    <div class="dice-widget">
-      <button class="d20-button" onclick="manualRollD20()" title="點擊擲 D20">🎲</button>
-      <div class="dice-info">
-        <span id="dice-label">D20 檢定骰盅</span>
-        <strong id="dice-result">點選擲骰</strong>
+      <div class="dice-roller-bar">
+        <button class="d20-btn" onclick="manualRollD20()" title="點擊擲 D20">🎲</button>
+        <div class="dice-text">
+          <span id="dice-label">D20 檢定骰盅</span>
+          <strong id="dice-result">點選擲骰</strong>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- Dual Chat Arena -->
+  <!-- ================= DUAL CHAT ARENA ================= -->
   <main class="arena">
-    <!-- Left Window: DM + Team Chat -->
+    <!-- Left Window: Main DM & Party Chat -->
     <div class="pane">
       <div class="pane-header">
         <span>🧙‍♂️ 主聊天室：地下城主 (DM) ＆ 隊伍冒險視窗</span>
-        <span class="pane-tag">Main DM Room</span>
+        <span class="pane-tag">Main DM Orchestrator</span>
       </div>
       <div class="log-stream" id="dm-stream"></div>
 
       <div class="action-dock">
         <div class="choices-grid" id="choices-box"></div>
         <div class="input-bar">
-          <input type="text" id="free-input" class="chat-input" placeholder="直接輸入你想對萊拉說的話，或自訂任何行動（例如：我對萊拉說別怕，然後衝進樹叢砍哥布林）..." onkeydown="if(event.key==='Enter') handleFreeInput()">
+          <input type="text" id="free-input" class="chat-input" placeholder="直接輸入你想對萊拉說的話，或自訂任何行動（例如：我舉盾護住萊拉並衝向哥布林）..." onkeydown="if(event.key==='Enter') handleFreeInput()">
           <button class="send-btn" onclick="handleFreeInput()">行動 / 對話</button>
         </div>
       </div>
@@ -512,8 +777,8 @@
     <div class="modal-card">
       <h3>🤖 啟用真實雙 Agent LLM 自由生成模式（選填）</h3>
       <p>
-        本網頁預設內建完整的<strong>《失落的礦坑》多分支互動劇本引擎</strong>，不需 API Key 即可直接暢玩！<br><br>
-        若你想體驗<strong>完全無限自由度</strong>的真實大型語言模型（由兩個獨立 Prompt 分別扮演 DM 與無劇透隊友萊拉），可在下方貼上你的 Google Gemini API Key（僅保存在你的瀏覽器記憶體中，不會上傳至任何伺服器）：
+        本網頁預設內建完整的<strong>《失落的礦坑》多分支視覺化劇本引擎</strong>，不需 API Key 即可直接暢玩！<br><br>
+        若你想體驗完全無限自由度的真實大型語言模型（由兩個獨立 Prompt 分別扮演 DM 與無劇透隊友萊拉），可在下方貼上你的 Google Gemini API Key：
       </p>
       <input type="password" id="gemini-key-input" class="chat-input" style="width: 100%; margin-bottom: 14px;" placeholder="貼上 AIzaSy... 開頭的 Gemini API Key（留空則使用內建劇本引擎）">
       <div style="display: flex; justify-content: flex-end; gap: 10px;">
@@ -524,7 +789,6 @@
   </div>
 
 <script>
-  // Game State
   let state = {
     scene: 1,
     playerHp: 12,
@@ -535,19 +799,42 @@
     lyraMaxHp: 7,
     lyraSlots: 1,
     lyraMaxSlots: 2,
-    goblinsLeft: 4,
     apiKey: ""
   };
 
+  function showFx(text) {
+    const layer = document.getElementById('fx-layer');
+    document.getElementById('fx-text').innerHTML = text;
+    layer.classList.add('active');
+    setTimeout(() => layer.classList.remove('active'), 2200);
+  }
+
+  function highlightSpeaker(who) {
+    document.getElementById('card-paladin').classList.toggle('speaking', who === 'paladin');
+    document.getElementById('card-lyra').classList.toggle('speaking', who === 'lyra');
+  }
+
+  function switchSceneImage(sceneKey) {
+    const img = document.getElementById('scene-bg-img');
+    const banner = document.getElementById('location-banner');
+    if (sceneKey === 'cave') {
+      img.src = './assets/scene_cave.jpg';
+      banner.innerHTML = '<span>🗺️ 當前場景：<strong>克拉格莫洞穴入口 (Cragmaw Hideout) — 溪流與看門餓狼</strong></span>';
+    } else {
+      img.src = './assets/scene_ambush.jpg';
+      banner.innerHTML = '<span>🗺️ 當前場景：<strong>三豬小徑 (Triboar Trail) — 死馬與黑羽箭伏擊點</strong></span>';
+    }
+  }
+
   function updateHud() {
-    document.getElementById('player-hp-text').textContent = `${state.playerHp} / ${state.playerMaxHp}`;
+    document.getElementById('player-hp-text').textContent = `${state.playerHp}/${state.playerMaxHp}`;
     document.getElementById('player-hp-bar').style.width = `${Math.max(0, (state.playerHp / state.playerMaxHp) * 100)}%`;
     document.getElementById('lay-hands-val').textContent = state.layOnHands;
     document.getElementById('gold-val').textContent = state.gold;
 
-    document.getElementById('lyra-hp-text').textContent = `${state.lyraHp} / ${state.lyraMaxHp}`;
+    document.getElementById('lyra-hp-text').textContent = `${state.lyraHp}/${state.lyraMaxHp}`;
     document.getElementById('lyra-hp-bar').style.width = `${Math.max(0, (state.lyraHp / state.lyraMaxHp) * 100)}%`;
-    document.getElementById('lyra-mp-text').textContent = `${state.lyraSlots} / ${state.lyraMaxSlots}`;
+    document.getElementById('lyra-mp-text').textContent = `${state.lyraSlots}/${state.lyraMaxSlots}`;
     document.getElementById('lyra-mp-bar').style.width = `${(state.lyraSlots / state.lyraMaxSlots) * 100}%`;
   }
 
@@ -563,6 +850,7 @@
 
   function manualRollD20() {
     const r = rollD20(0, "手動擲骰 D20");
+    showFx(`🎲 你擲出了 D20 = ${r.raw}！`);
     addBubble('dm-stream', 'player', '🎲 玩家手動擲骰', `D20 = ${r.raw}`, `你在桌上擲出了一顆二十面骰，點數為 <strong>${r.raw}</strong>！`);
   }
 
@@ -570,7 +858,17 @@
     const stream = document.getElementById(streamId);
     const div = document.createElement('div');
     div.className = `bubble ${role}`;
-    div.innerHTML = `<div class="bubble-header"><span>${sender}</span><span>${tag}</span></div>${html}`;
+
+    let avatarHtml = '';
+    if (role === 'lyra') {
+      avatarHtml = `<img class="bubble-avatar" src="./assets/lyra_portrait.jpg" alt="Lyra">`;
+      highlightSpeaker('lyra');
+    } else if (role === 'player') {
+      avatarHtml = `<img class="bubble-avatar" src="./assets/paladin_portrait.jpg" alt="Paladin" style="border-color:#60a5fa;">`;
+      highlightSpeaker('paladin');
+    }
+
+    div.innerHTML = `${avatarHtml}<div class="bubble-body"><div class="bubble-header"><span>${sender}</span><span>${tag}</span></div>${html}</div>`;
     stream.appendChild(div);
     stream.scrollTop = stream.scrollHeight;
   }
@@ -587,26 +885,36 @@
     });
   }
 
-  // Initial Scene 1
   function initGame() {
     document.getElementById('dm-stream').innerHTML = '';
     document.getElementById('lyra-stream').innerHTML = '';
     document.getElementById('scene-badge').textContent = '第一章：三豬小徑的伏擊';
+    switchSceneImage('ambush');
 
-    addBubble('lyra-stream', 'thought', '🔒 獨立子代理視窗 (Context Isolation)', '防劇透機制運作中',
-      '此視窗為 AI 隊友<strong>【萊拉・星語 (Lyra)】</strong>的專屬思考空間。她<strong>看不到 DM 的隱藏劇本</strong>（不知道樹叢裡埋伏了 4 隻哥布林、也不知道陷阱位置），只能根據 DM 傳送過來的感官描述與你的行動做出真實反應！');
+    // Reset map tokens
+    document.getElementById('tok-paladin').style.left = '22%';
+    document.getElementById('tok-gob1').classList.remove('asleep');
+    document.getElementById('tok-gob2').classList.remove('asleep');
+    document.getElementById('tok-gob3').classList.remove('asleep');
+    document.getElementById('tok-gob1').textContent = '👺';
+    document.getElementById('tok-gob2').textContent = '👺';
+    document.getElementById('tok-gob3').textContent = '👺';
+    document.getElementById('enemy-count-badge').textContent = '哥布林伏兵 ×4';
+
+    addBubble('lyra-stream', 'thought', '🔒 獨立子代理視窗 (Context Isolation)', '防劇透機制 ON',
+      '此視窗為 AI 隊友<strong>【萊拉・星語 (Lyra)】</strong>的獨立思考空間。她<strong>看不到 DM 的隱藏劇本</strong>，只能根據 DM 傳送過來的感官畫面與你的行動做出真實反應！');
 
     addBubble('dm-stream', 'dm', '🧙‍♂️ 地下城主 (DM)', '冒險開場',
-      '你們三天前從絕冬城出發，受矮人探勘者 <strong>岡德林・尋石者（Gundren Rockseeker）</strong> 之託，駕駛滿載採礦物資的馬車沿著「三豬小徑」前往邊境小鎮<strong>凡達林</strong>。岡德林曾興奮地透露他發現了傳說中的「回聲洞礦坑」，並與武士保鑣<strong>希爾達（Sildar）</strong>騎快馬先行一步。<br><br>午後陽光穿過樹冠，馬車剛轉過彎道——前方約 <strong>50 呎</strong> 處的道路中央，橫躺著兩匹死去的馬，馬屍上插滿了粗糙的黑羽箭，鮮血尚未乾涸。兩側灌木叢安靜得詭異。');
+      '你們三天前從絕冬城出發，受矮人探勘者 <strong>岡德林・尋石者（Gundren Rockseeker）</strong> 之託，駕駛滿載採礦物資的馬車沿著「三豬小徑」前往邊境小鎮<strong>凡達林</strong>。岡德林曾興奮地透露他發現了傳說中的「回聲洞礦坑」，並與武士保鑣<strong>希爾達（Sildar）</strong>騎快馬先行一步。<br><br>午後陽光穿過樹冠，馬車剛轉過彎道——前方約 <strong>50 呎</strong> 處的道路中央，橫躺著兩匹死去的馬（如上方畫面所示），馬屍上插滿了粗糙的黑羽箭。兩側灌木叢安靜得詭異。');
 
     addBubble('lyra-stream', 'dm', '📨 來自 DM 的無劇透情境通知', 'Scene 1',
       '前方 50 呎處道路中央橫躺著兩匹插滿黑羽箭的死馬，兩旁樹叢異常安靜。請以【萊拉】身份做出開場反應。');
 
     addBubble('lyra-stream', 'lyra', '💭 萊拉的內心思考 (Chain of Thought)', '智力 16 (+3)',
-      '<em>「黑羽箭是哥布林的武器！而且那兩匹馬的毛色很像岡德林和希爾達騎的馬！我只有 7 點 HP，萬一被暗箭射中就糟了，必須先消耗 1 格法術位施放《法師護甲》(AC 12→15)，再叫身邊這個人類聖騎士頂在前面！」</em>');
+      '<em>「黑羽箭是哥布林的武器！而且那兩匹馬的毛色很像岡德林和希爾達騎的馬！我只有 7 點 HP，必須先消耗 1 格法術位施放《法師護甲》(AC 12→15)，再叫身邊這個人類聖騎士頂在前面！」</em>');
 
     addBubble('dm-stream', 'lyra', '🧝‍♀️ 隊友【萊拉 (Lyra)】（由右方獨立視窗同步）', '施展《法師護甲》AC→15',
-      '「唔……這該死的破馬車是完全沒有避震可言嗎？你看，泥巴都濺到我從銀月城帶來的星紋法袍下擺了！」萊拉嫌棄地唸了個《魔法伎倆》把污漬清乾淨，目光卻突然凝結在前方五十呎處的死馬上。<br><br>她尖長的精靈耳朵警覺抖動，連忙拉住你的衣袖壓低聲音：「<strong>喂！停下馬車，別再往前傻衝了！你看那兩匹馬……那種粗糙噁心的黑羽箭，絕對是哥布林的傑作！而且該不會是岡德林和希爾達的馬吧？</strong>」<br><br>萊拉白皙的手指迅速劃出奧術符文，微光屏障籠罩全身，另一手凝聚起《火焰箭》的火星：「<strong>本小姐的防護已經準備好了！你這個穿鐵罐頭的肌肉腦袋打算怎麼辦？要是敢讓那些髒兮兮的小怪物靠近我半步，你就死定了！</strong>」');
+      '「唔……這該死的破馬車是完全沒有避震可言嗎？你看，泥巴都濺到我從銀月城帶來的星紋法袍下擺了！」萊拉嫌棄地唸了個《魔法伎倆》把污漬清乾淨，目光卻突然凝結在前方五十呎處的死馬上。<br><br>她尖長的精靈耳朵警覺抖動，連忙拉住你的衣袖壓低聲音：「<strong>喂！停下馬車，別再往前傻衝了！那種粗糙噁心的黑羽箭，絕對是哥布林的傑作！而且該不會是岡德林和希爾達的馬吧？</strong>」<br><br>萊拉白皙的手指迅速劃出奧術符文，微光屏障籠罩全身：「<strong>本小姐的防護已經準備好了！你這個穿鐵罐頭的肌肉腦袋打算怎麼辦？要是敢讓那些髒兮兮的小怪物靠近我半步，你就死定了！</strong>」');
 
     setScene1Choices();
     updateHud();
@@ -614,86 +922,63 @@
 
   function setScene1Choices() {
     setChoices([
-      {
-        label: '👁️ 1. 拔劍舉盾，仔細觀察兩旁灌木叢 (感知檢定 +2)',
-        action: () => scene1Action('perceive')
-      },
-      {
-        label: '🔍 2. 舉盾掩護靠近死馬，調查箭矢與地上腳印 (調查檢定 +1)',
-        action: () => scene1Action('investigate')
-      },
-      {
-        label: '🗣️ 3. 用長劍敲擊盾牌大吼，把埋伏的怪物逼出來 (威嚇檢定 +3)',
-        action: () => scene1Action('intimidate')
-      },
-      {
-        label: '🛡️ 4. 擋在馬車前保護萊拉，請她從高處施法偵查',
-        action: () => scene1Action('protect')
-      }
+      { label: '👁️ 1. 拔劍舉盾，仔細觀察兩旁灌木叢 (感知檢定 +2)', action: () => scene1Action('perceive') },
+      { label: '🔍 2. 舉盾靠近死馬，調查箭矢與地上腳印 (調查檢定 +1)', action: () => scene1Action('investigate') },
+      { label: '🗣️ 3. 用長劍敲擊盾牌大吼，把埋伏的怪物逼出來 (威嚇檢定 +3)', action: () => scene1Action('intimidate') },
+      { label: '🛡️ 4. 擋在馬車前保護萊拉，請她從高處施法偵查', action: () => scene1Action('protect') }
     ]);
   }
 
-  // Scene 1 -> Scene 2 (Goblin Ambush Combat)
   function scene1Action(mode) {
     document.getElementById('scene-badge').textContent = '第二幕：哥布林伏擊戰';
+    document.getElementById('tok-paladin').style.left = '38%';
 
     if (mode === 'perceive') {
       const r = rollD20(2, "感知檢定 (DC 12)");
       addBubble('dm-stream', 'player', '🛡️ 玩家（人類聖騎士）', `感知檢定: ${r.total}`,
         '我拉住韁繩停下馬車，拔出長劍並舉起盾牌擋在萊拉身前：「別慌，待在我身後！」同時銳利地掃視兩側濃密的灌木叢。');
 
-      const spotted = r.total >= 12;
-      if (spotted) {
+      if (r.total >= 12) {
         addBubble('dm-stream', 'dm', '🧙‍♂️ 地下城主 (DM)', `檢定成功 (${r.total} ≥ 12)`,
-          '你敏銳地捕捉到右側樹叢後的枝葉晃動——四隻綠皮膚、尖耳朵的<strong>哥布林伏兵</strong>正拉滿短弓瞄準你們！因為你提前識破了埋伏，你瞬間舉盾格擋，「噹！噹！」兩支偷襲的黑羽箭全數被你的盾牌（AC 18）彈飛！');
+          '你敏銳地捕捉到右側樹叢後的枝葉晃動——四隻綠皮膚的<strong>哥布林伏兵</strong>正拉滿短弓瞄準你們！你瞬間舉盾格擋，「噹！噹！」兩支偷襲的黑羽箭全數被你的盾牌（AC 18）彈飛！');
       } else {
         state.playerHp = Math.max(1, state.playerHp - 3);
         addBubble('dm-stream', 'dm', '🧙‍♂️ 地下城主 (DM)', `未察覺伏兵 (${r.total} < 12)`,
-          '樹叢太過茂密，突然「嗖嗖！」兩支黑羽箭從右側陰影射出！其中一支擦過你的肩膀造成 <strong>3 點穿刺傷害</strong>，四隻獰笑的<strong>哥布林伏兵</strong>揮舞彎刀與短弓跳了出來！');
+          '突然「嗖嗖！」兩支黑羽箭從右側陰影射出！其中一支擦過你的肩膀造成 <strong>3 點穿刺傷害</strong>，四隻獰笑的<strong>哥布林伏兵</strong>跳了出來！');
       }
-
-      addBubble('lyra-stream', 'dm', '📨 來自 DM 的無劇透情境通知', '進入戰鬥',
-        '右側樹叢跳出 4 隻哥布林發動攻擊！其中 3 隻聚在一起拉弓，1 隻拿彎刀衝過來。請以【萊拉】身份行動。');
-      addBubble('lyra-stream', 'lyra', '💭 萊拉的內心思考', '法術選擇：睡眠術',
-        '<em>「有 3 隻哥布林擠在樹叢邊，用一環法術《睡眠術 (Sleep)》(5d8 HP 催眠) 剛好可以一次放倒牠們！省得那個人類大塊頭被射成刺蝟！」</em>');
-
-      state.lyraSlots = Math.max(0, state.lyraSlots - 1);
-      state.goblinsLeft = 1;
-      addBubble('dm-stream', 'lyra', '🧝‍♀️ 隊友【萊拉 (Lyra)】（獨立視窗同步）', '施展一環法術《睡眠術》！',
-        '「哼，區區幾隻骯髒的哥布林，也敢動本小姐的護衛！」萊拉站在馬車座上居高臨下，抓起一撮細沙吟唱出高亢的精靈語咒文——<br><br>一道璀璨的星光粉塵在樹叢中炸開（<strong>施放《睡眠術 Sleep》，擲出 5d8 = 23 點生命值範圍！</strong>），後排三隻拿短弓的哥布林連慘叫都來不及發出，就兩眼一翻「噗通、噗通」倒在地上呼呼大睡！<br><br>「呼……看吧！本小姐一出手就解決了三個！剩下最後一隻拿彎刀衝過來的頭目交給你了，別丟臉啊！」');
-
     } else if (mode === 'investigate') {
       const r = rollD20(1, "調查檢定 (DC 11)");
       addBubble('dm-stream', 'player', '🛡️ 玩家（人類聖騎士）', `調查檢定: ${r.total}`,
         '我請萊拉在車上警戒，自己舉著盾牌小心翼翼地走向死馬，檢查馬鞍與地上的痕跡。');
-
       addBubble('dm-stream', 'dm', '🧙‍♂️ 地下城主 (DM)', `發現重要線索 (${r.total})`,
-        '你確認這兩匹棕馬正是僱主<strong>岡德林與希爾達的坐騎</strong>！馬鞍旁皮革製的地圖匣已被搜刮一空，泥地上有一串哥布林腳印與「拖行兩個重物」往北邊森林小徑延伸的痕跡！就在這時，四隻埋伏的哥布林從樹叢跳出撲向你！');
-
-      addBubble('lyra-stream', 'lyra', '💭 萊拉的內心思考', '緊急施放睡眠術',
-        '<em>「果然是岡德林的馬！趁那四隻哥布林剛跳出來聚在一起，馬上把最後一格一環法術位拿來放《睡眠術》控場！」</em>');
-
-      state.lyraSlots = Math.max(0, state.lyraSlots - 1);
-      state.goblinsLeft = 1;
-      addBubble('dm-stream', 'lyra', '🧝‍♀️ 隊友【萊拉 (Lyra)】（獨立視窗同步）', '《睡眠術》瞬間催眠 3 隻！',
-        '「笨蛋！後面有埋伏！」萊拉纖手一揮，銀色星塵瞬間籠罩右側樹叢（<strong>施展《睡眠術》</strong>），三隻哥布林當場倒地熟睡，只剩一隻戴著骨製項鍊的哥布林小頭目驚恐地舉著彎刀站在原地：「快解決牠！我們還得審問岡德林被抓去哪裡了！」');
-
+        '你確認這兩匹棕馬正是僱主<strong>岡德林與希爾達的坐騎</strong>！皮革地圖匣已被搜刮一空，泥地上有一串哥布林腳印與往北邊森林小徑拖行的痕跡！這時，四隻埋伏的哥布林從樹叢跳出撲向你！');
     } else {
       const r = rollD20(3, "威嚇檢定 (DC 12)");
       addBubble('dm-stream', 'player', '🛡️ 玩家（人類聖騎士）', `戰術配合 (${r.total})`,
         '我穩穩擋在馬車前方，用長劍重擊盾牌喝斥伏兵，同時讓萊拉從馬車高處鎖定敵人位置！');
-
-      state.lyraSlots = Math.max(0, state.lyraSlots - 1);
-      state.goblinsLeft = 1;
-      addBubble('lyra-stream', 'lyra', '💭 萊拉的內心思考', '好感度提升＋控場',
-        '<em>「這傢伙擋在前面的背影還挺可靠的嘛……好，本小姐也不能漏氣，直接用《睡眠術》把後排弓箭手全放倒！」</em>');
-
-      addBubble('dm-stream', 'dm', '🧙‍♂️ 地下城主 (DM)', '伏兵大亂',
-        '你的威嚇讓四隻哥布林陣腳大亂！萊拉趁機從馬車高處施放一環法術<strong>《睡眠術 (Sleep)》</strong>，星光閃過，三隻哥布林應聲倒地不起，現場只剩下一隻瑟瑟發抖的哥布林尖兵還醒著！');
-
-      addBubble('dm-stream', 'lyra', '🧝‍♀️ 隊友【萊拉 (Lyra)】（獨立視窗同步）', '得意揚起下巴',
-        '「哼哼，看到銀月城高材生的實力了吧？地上那三隻睡著的剛好可以五花大綁，眼前這隻醒著的交給你處置！」');
+      addBubble('dm-stream', 'dm', '🧙‍♂️ 地下城主 (DM)', '伏兵現身',
+        '你的威嚇讓四隻哥布林陣腳大亂，紛紛從灌木叢中暴露了位置！');
     }
+
+    // Lyra casts Sleep!
+    showFx('✨ 萊拉施展一環法術《睡眠術 Sleep》(5d8 = 23 HP)！');
+    state.lyraSlots = Math.max(0, state.lyraSlots - 1);
+
+    // Update map tokens to show sleeping goblins
+    ['tok-gob1', 'tok-gob2', 'tok-gob3'].forEach(id => {
+      const el = document.getElementById(id);
+      el.classList.add('asleep');
+      el.textContent = '💤';
+    });
+    document.getElementById('enemy-count-badge').textContent = '清醒敵人 ×1 (3隻熟睡💤)';
+
+    addBubble('lyra-stream', 'dm', '📨 來自 DM 的無劇透情境通知', '進入戰鬥',
+      '樹叢跳出 4 隻哥布林發動攻擊！請以【萊拉】身份施展法術支援。');
+    addBubble('lyra-stream', 'lyra', '💭 萊拉的內心思考', '施展《睡眠術》控場',
+      '<em>「有 3 隻哥布林擠在樹叢邊，用一環法術《睡眠術 (Sleep)》剛好可以一次放倒牠們！省得那個人類大塊頭被射成刺蝟！」</em>');
+
+    addBubble('dm-stream', 'lyra', '🧝‍♀️ 隊友【萊拉 (Lyra)】（獨立視窗同步）', '施展一環法術《睡眠術》！',
+      '「哼，區區幾隻骯髒的哥布林，也敢動本小姐的護衛！」萊拉站在馬車座上居高臨下，抓起一撮細沙吟唱出高亢的精靈語咒文——<br><br>一道璀璨的星光粉塵在樹叢中炸開（<strong>施放《睡眠術 Sleep》，右上角沙盤中 3 隻哥布林瞬間變成 💤 熟睡狀態！</strong>）<br><br>「呼……看吧！本小姐一出手就解決了三個！剩下最後一隻拿彎刀衝過來的尖兵交給你了，別丟臉啊！」');
 
     updateHud();
     setScene2Choices();
@@ -701,173 +986,136 @@
 
   function setScene2Choices() {
     setChoices([
-      {
-        label: '⚔️ 1. 揮動長劍斬向最後一隻哥布林 (近戰攻擊 +5)',
-        action: () => scene2Action('attack')
-      },
-      {
-        label: '🛡️ 2. 用盾牌猛擊拍暈牠，抓活口審問岡德林下落 (非致命攻擊 +5)',
-        action: () => scene2Action('knockout')
-      },
-      {
-        label: '🔥 3. 對萊拉喊：「萊拉，給牠見識妳的火焰箭！」(雙人合擊)',
-        action: () => scene2Action('combo')
-      },
-      {
-        label: '✨ 4. 使用聖騎士《聖療術》先幫自己恢復生命值',
-        action: () => scene2Action('heal')
-      }
+      { label: '⚔️ 1. 揮動長劍斬向最後一隻哥布林 (近戰攻擊 +5)', action: () => scene2Action('attack') },
+      { label: '🛡️ 2. 用盾牌猛擊拍暈牠，抓活口審問岡德林下落 (非致命 +5)', action: () => scene2Action('knockout') },
+      { label: '🔥 3. 對萊拉喊：「萊拉，給牠見識妳的火焰箭！」(雙人合擊)', action: () => scene2Action('combo') },
+      { label: '✨ 4. 使用聖騎士《聖療術》先幫自己恢復生命值', action: () => scene2Action('heal') }
     ]);
   }
 
-  // Scene 2 -> Scene 3 (Interrogation & Goblin Trail)
   function scene2Action(mode) {
     if (mode === 'heal') {
       const healAmt = Math.min(state.layOnHands, state.playerMaxHp - state.playerHp);
       if (healAmt <= 0) {
-        addBubble('dm-stream', 'dm', '🧙‍♂️ 地下城主 (DM)', 'HP 已滿', '你的生命值目前是滿的（12/12），不需要消耗聖療術池！請選擇其他戰鬥行動。');
+        addBubble('dm-stream', 'dm', '🧙‍♂️ 地下城主 (DM)', 'HP 已滿', '你的生命值目前是滿的（12/12），不需要消耗聖療術池！');
         return;
       }
       state.playerHp += healAmt;
       state.layOnHands -= healAmt;
+      showFx(`✨ 聖騎士施展《聖療術》恢復 ${healAmt} 點 HP！`);
       updateHud();
       addBubble('dm-stream', 'player', '🛡️ 玩家（人類聖騎士）', `聖療術 +${healAmt} HP`, '我將手按在胸口祈禱，溫暖的聖光瞬間撫平了傷口！');
-      addBubble('dm-stream', 'lyra', '🧝‍♀️ 隊友【萊拉 (Lyra)】', '鬆了一口氣', '「呼……還好你會自己治癒，本小姐可不會牧師那些治療神術。快把眼前那隻哥布林解決掉！」');
       return;
     }
 
     document.getElementById('scene-badge').textContent = '第三幕：審問俘虜與秘密小徑';
-    const atk = rollD20(5, "長劍攻擊檢定 (對抗 AC 15)");
+    const atk = rollD20(5, "長劍攻擊檢定 (DC 15)");
+    showFx(`⚔️ 聖騎士斬擊 (${atk.total}) ＋ 🔥 萊拉《火焰箭》合擊！`);
 
-    if (mode === 'attack' || mode === 'combo') {
-      addBubble('dm-stream', 'player', '🛡️ 玩家（人類聖騎士）', `攻擊檢定: ${atk.total}`,
-        mode === 'combo'
-          ? '我正面踏步揮劍壓制哥布林的彎刀，同時大喊：「萊拉，轟牠！」'
-          : '我大步衝上前，雙手緊握長劍劃出一道銀弧斬向最後那隻清醒的哥布林！');
+    document.getElementById('tok-gob4').classList.add('asleep');
+    document.getElementById('tok-gob4').textContent = '🏳️';
+    document.getElementById('enemy-count-badge').textContent = '戰鬥勝利！(俘虜 ×4)';
 
-      addBubble('lyra-stream', 'dm', '📨 來自 DM 的無劇透情境通知', '戰鬥結束',
-        '聖騎士與你聯手制伏了最後一隻哥布林，地上還有三隻被你的《睡眠術》催眠的哥布林俘虜。');
+    addBubble('dm-stream', 'player', '🛡️ 玩家（人類聖騎士）', `攻擊檢定: ${atk.total}`,
+      mode === 'knockout'
+        ? '我一個箭步欺近，沉重的金屬盾牌直接拍在哥布林頭上，將牠手裡的彎刀震飛並死死按在地上！'
+        : '我正面踏步揮劍斬向哥布林，同時與萊拉的《火焰箭》形成完美夾擊！');
 
-      addBubble('lyra-stream', 'lyra', '💭 萊拉的內心思考', '戰後搜查與審問',
-        '<em>「太好了，戰鬥順利結束！地上還有被我催眠的活口，只要把其中一隻綁起來搖醒，就能問出岡德林和希爾達被抓去哪裡了！」</em>');
+    state.gold += 8;
+    addBubble('dm-stream', 'dm', '🧙‍♂️ 地下城主 (DM)', '戰鬥勝利！(獲得 8 gp)',
+      `乾淨俐落的壓制（檢定 <strong>${atk.total}</strong>）！你們從哥布林身上搜出了 <strong>8 枚金幣</strong>，並把清醒過來的哥布林綁在樹幹上審問。`);
 
-      state.gold += 8;
-      addBubble('dm-stream', 'dm', '🧙‍♂️ 地下城主 (DM)', '戰鬥勝利！(獲得 8 gp)',
-        `你的長劍精準命中（檢定 <strong>${atk.total}</strong>），搭配萊拉指尖射出的熾熱《火焰箭》，瞬間擊潰了最後一名敵人！你們從哥布林身上搜出了 <strong>8 枚金幣</strong>與幾個粗糙的皮袋，並用麻繩將地上被《睡眠術》催眠的哥布林綁在樹幹上。`);
+    addBubble('lyra-stream', 'lyra', '💭 萊拉的內心思考', '戰後審問',
+      '<em>「太好了！把這隻哥布林嚇一嚇，就能問出岡德林和希爾達被抓去哪裡了！」</em>');
 
-    } else if (mode === 'knockout') {
-      addBubble('dm-stream', 'player', '🛡️ 玩家（人類聖騎士）', `盾擊檢定: ${atk.total}`,
-        '我一個箭步欺近，沉重的金屬盾牌直接拍在哥布林頭上，將牠手裡的彎刀震飛並死死按在地上！');
-      state.gold += 8;
-      addBubble('dm-stream', 'dm', '🧙‍♂️ 地下城主 (DM)', '成功活捉俘虜！(獲得 8 gp)',
-        `乾淨俐落的非致命壓制（檢定 <strong>${atk.total}</strong>）！這隻哥布林嚇得涕淚縱橫，連忙丟下武器投降。你們還從牠們身上搜出了 <strong>8 枚金幣</strong>。`);
-    }
-
-    addBubble('dm-stream', 'lyra', '🧝‍♀️ 隊友【萊拉 (Lyra)】（獨立視窗同步）', '走下馬車審問',
-      '萊拉優雅地跳下馬車，用指尖跳躍的《火焰箭》火苗湊近被綁住的哥布林鼻尖，露出惡魔般的微笑：「說！你們把騎這兩匹馬的矮人岡德林和人類武士抓去哪裡了？敢說半句假話，本小姐就把你的眉毛連同腦袋一起烤熟！」<br><br>哥布林嚇得瘋狂點頭：「別燒我！別燒我！大王『克拉格（Klarg）』命令我們在路上抓那個矮人！矮人跟他的地圖已經被送到<strong>黑蜘蛛大人</strong>那裡了，但那個穿鎧甲的人類武士還關在北邊森林小徑盡頭的<strong>『克拉格莫洞穴（Cragmaw Hideout）』</strong>裡！」');
+    addBubble('dm-stream', 'lyra', '🧝‍♀️ 隊友【萊拉 (Lyra)】（獨立視窗同步）', '火苗威脅審問',
+      '萊拉優雅地跳下馬車，用指尖跳躍的《火焰箭》火苗湊近哥布林鼻尖：「說！你們把騎這兩匹馬的矮人岡德林和人類武士抓去哪裡了？」<br><br>哥布林嚇得瘋狂點頭：「別燒我！矮人已經被送到黑蜘蛛大人那裡了，但那個穿鎧甲的人類武士希爾達還關在北邊森林小徑盡頭的<strong>『克拉格莫洞穴（Cragmaw Hideout）』</strong>裡！」');
 
     updateHud();
-    setScene3Choices();
-  }
-
-  function setScene3Choices() {
     setChoices([
-      {
-        label: '🌲 1. 沿著北邊森林小徑前往「克拉格莫洞穴」營救希爾達！',
-        action: () => scene3Action('cave')
-      },
-      {
-        label: '🛌 2. 先在馬車旁進行「短休 (Short Rest)」，幫萊拉泡杯茶恢復精力',
-        action: () => scene3Action('rest')
-      },
-      {
-        label: '💬 3. 誇獎萊拉剛才的《睡眠術》超級帥氣（提升隊友好感度）',
-        action: () => scene3Action('praise')
-      },
-      {
-        label: 'ロープ 4. 把哥布林俘虜綁緊在樹上，藏好物資馬車再出發',
-        action: () => scene3Action('secure')
-      }
+      { label: '🕳️ 1. 前往「克拉格莫洞穴」（切換至洞穴視覺場景！）', action: () => scene3Action('cave') },
+      { label: '🛌 2. 先在馬車旁「短休」泡茶，讓萊拉恢復法術位', action: () => scene3Action('rest') },
+      { label: '💬 3. 誇獎萊拉剛才的《睡眠術》超級帥氣！', action: () => scene3Action('praise') },
+      { label: '🔄 4. 重新開始戰役', action: () => resetGame() }
     ]);
   }
 
   function scene3Action(mode) {
     if (mode === 'rest') {
       state.playerHp = state.playerMaxHp;
-      state.lyraSlots = state.lyraMaxSlots; // Arcane Recovery!
+      state.lyraSlots = state.lyraMaxSlots;
+      showFx('🍵 隊伍短休完成！HP 與萊拉法術位全滿！');
       updateHud();
-      addBubble('dm-stream', 'player', '🛡️ 玩家（人類聖騎士）', '隊伍短休 (Short Rest)',
-        '我把馬車停進隱蔽的樹蔭下，生起小火堆泡了熱茶遞給萊拉：「剛才放法術辛苦了，我們先休息半小時，妳也用《奧術回想》恢復一下法術位吧！」');
-      addBubble('lyra-stream', 'lyra', '💭 萊拉的內心思考', '發動《奧術回想 Arcane Recovery》',
-        '<em>「哼……這木頭人居然還懂得泡茶給我喝！好吧，趁機翻開魔法書進行『奧術回想』，把剛才用掉的 1 環法術位補滿（法術位恢復至 2/2）！」</em>');
-      addBubble('dm-stream', 'lyra', '🧝‍♀️ 隊友【萊拉 (Lyra)】（獨立視窗同步）', '法術位完全恢復 (2/2)！',
-        '萊拉接過熱茶小口啜飲，耳根微微泛紅地別過頭：「哼，算你識相，知道本小姐才是隊伍的核心輸出……我已經透過《奧術回想》把一環法術位補滿了！隨時可以出發去那個什麼克拉格莫洞穴！」');
+      addBubble('dm-stream', 'player', '🛡️ 玩家（人類聖騎士）', '隊伍短休',
+        '我生起小火堆泡了熱茶遞給萊拉：「剛才放法術辛苦了，休息一下用《奧術回想》恢復法術位吧！」');
+      addBubble('dm-stream', 'lyra', '🧝‍♀️ 隊友【萊拉 (Lyra)】', '法術位恢復 (2/2)',
+        '萊拉接過熱茶小口啜飲，耳根微紅：「哼，算你識相……我已經把一環法術位補滿了，隨時可以出發去克拉格莫洞穴！」');
       return;
     }
 
     if (mode === 'praise') {
-      addBubble('dm-stream', 'player', '🛡️ 玩家（人類聖騎士）', '隊伍對話',
-        '我笑著對萊拉豎起大拇指：「萊拉，剛才那發《睡眠術》一次放倒三隻哥布林真的太神了，還好有妳在！」');
-      addBubble('lyra-stream', 'lyra', '💭 萊拉的內心思考', '傲嬌屬性大爆發',
-        '<em>「笨、笨蛋！突然這麼認真誇獎人家幹嘛啦！害我的心跳都漏了一拍……」</em>');
-      addBubble('dm-stream', 'lyra', '🧝‍♀️ 隊友【萊拉 (Lyra)】（獨立視窗同步）', '臉紅傲嬌回應',
-        '「那、那還用說！也不看看本小姐是誰，銀月城魔法學院第一名畢業的耶！」萊拉連忙用魔法書遮住自己紅透的臉頰，嘴角卻藏不住笑意：「不過……你剛才舉盾擋在前面的樣子，也、也還算有幾分聖騎士的樣子啦！走吧，我們快去救希爾達！」');
+      showFx('💖 萊拉好感度大幅提升！');
+      addBubble('dm-stream', 'player', '🛡️ 玩家（人類聖騎士）', '誇獎隊友',
+        '我對萊拉豎起大拇指：「萊拉，剛才那發《睡眠術》一次放倒三隻哥布林真的太神了！」');
+      addBubble('lyra-stream', 'lyra', '💭 萊拉的內心思考', '傲嬌臉紅',
+        '<em>「笨、笨蛋！突然這麼認真誇獎人家幹嘛啦！害我心跳漏了一拍……」</em>');
+      addBubble('dm-stream', 'lyra', '🧝‍♀️ 隊友【萊拉 (Lyra)】', '臉紅傲嬌回應',
+        '「那、那還用說！也不看看本小姐是誰！」萊拉連忙用魔法書遮住泛紅的臉頰：「不過……你剛才舉盾擋在前面的背影，也還算可靠啦！走吧，我們快去救希爾達！」');
       return;
     }
 
+    // Switch to Cave Scene Visuals!
     document.getElementById('scene-badge').textContent = '第四幕：克拉格莫洞穴入口';
-    const surv = rollD20(2, "生存/察覺檢定 (DC 12)");
+    switchSceneImage('cave');
+    showFx('🗺️ 場景切換：抵達【克拉格莫洞穴】！');
 
-    addBubble('dm-stream', 'player', '🛡️ 玩家（人類聖騎士）', `追蹤小徑 (${surv.total})`,
-      '我們將貨運馬車藏好、綁緊俘虜後，沿著哥布林拖行重物的森林小徑一路向北追蹤！');
+    document.getElementById('tok-horse').textContent = '🌊';
+    document.getElementById('tok-gob1').textContent = '🐺';
+    document.getElementById('tok-gob2').textContent = '🐺';
+    document.getElementById('tok-gob3').textContent = '🐺';
+    ['tok-gob1', 'tok-gob2', 'tok-gob3'].forEach(id => document.getElementById(id).classList.remove('asleep'));
+    document.getElementById('enemy-count-badge').textContent = '看門餓狼 ×3';
 
-    addBubble('dm-stream', 'dm', '🧙‍♂️ 地下城主 (DM)', '抵達克拉格莫洞穴！',
-      `沿著小徑前行約五哩（檢定結果 <strong>${surv.total}</strong>），你們順利避開了沿途的套索陷阱與落石坑，來到一座山丘腳下的巨大洞窟入口，一條清澈的溪流正從洞口潺潺流出。洞口東側的灌木叢裡隱約傳來<strong>三隻餓狼</strong>被鐵鍊拴住的低吼聲！`);
+    addBubble('dm-stream', 'player', '🛡️ 玩家（人類聖騎士）', '抵達洞穴',
+      '我們藏好物資馬車後，沿著北邊森林小徑追蹤五哩，來到了克拉格莫洞穴入口！');
 
-    addBubble('lyra-stream', 'dm', '📨 來自 DM 的無劇透情境通知', '抵達洞穴入口',
-      '你們抵達了克拉格莫洞穴入口，洞口東側有被鐵鍊拴住的三隻餓狼。請以【萊拉】身份提供戰術建議。');
+    addBubble('dm-stream', 'dm', '🧙‍♂️ 地下城主 (DM)', '場景切換：克拉格莫洞穴（見上方畫面）',
+      '你們來到山丘腳下的巨大洞窟入口（<strong>上方畫面已切換為克拉格莫洞穴實景！</strong>），一條冰涼的溪流從洞口流出，右側荊棘叢裡有三隻被鐵鍊拴住的<strong>看門餓狼</strong>正低聲咆哮！');
 
-    addBubble('lyra-stream', 'lyra', '💭 萊拉的內心思考', '分析洞口地形',
-      '<em>「洞口有溪流聲可以掩蓋我們的腳步聲，至於那三隻被鐵鍊拴住的狼……可以用馬車上的鹹肉安撫牠們，或是直接用《睡眠術》讓牠們閉嘴！」</em>');
+    addBubble('lyra-stream', 'lyra', '💭 萊拉的內心思考', '觀察洞口地形',
+      '<em>「洞口有溪流聲可以掩護腳步，至於那三隻被鐵鍊拴住的狼，可以用乾肉安撫或是用《睡眠術》催眠牠們！」</em>');
 
-    addBubble('dm-stream', 'lyra', '🧝‍♀️ 隊友【萊拉 (Lyra)】（獨立視窗同步）', '給出精闢戰術建議',
-      '萊拉壓低帽兜躲在溪邊岩石後，小聲對你耳語：「喂，你看洞口那三隻看門狼被鐵鍊拴著，要是讓牠們狂吠起來，整座山洞的哥布林都會被驚動！你要丟塊乾糧去安撫牠們，還是讓我用魔法讓牠們安靜下來？你可以直接在下方輸入框告訴我你的計畫！」');
+    addBubble('dm-stream', 'lyra', '🧝‍♀️ 隊友【萊拉 (Lyra)】（獨立視窗同步）', '洞口潛行建議',
+      '萊拉壓低帽兜躲在溪邊岩石後，小聲對你耳語：「喂，你看上面畫面裡洞口右邊那三隻看門狼，要是讓牠們狂吠起來，整座山洞的哥布林都會衝出來！你要丟塊乾肉安撫牠們，還是讓本小姐用魔法讓牠們閉嘴？」');
 
     setChoices([
-      {
-        label: '🥩 1. 掏出背包裡的乾肉丟給餓狼，安撫牠們趁機潛入 (馴獸檢定 +2)',
-        action: () => finishDemo('animal')
-      },
-      {
-        label: '🪄 2. 請萊拉施展魔法讓看門狼睡著，無聲潛入洞穴！',
-        action: () => finishDemo('magic')
-      },
-      {
-        label: '🌊 3. 利用溪流水聲掩護，貼著西側岩壁悄悄摸進洞穴 (隱匿檢定)',
-        action: () => finishDemo('stealth')
-      },
-      {
-        label: '🔄 4. 重新體驗第一章開場',
-        action: () => resetGame()
-      }
+      { label: '🥩 1. 掏出背包裡的乾肉丟給餓狼，趁機潛入洞穴 (馴獸 +2)', action: () => finishDemo('animal') },
+      { label: '🪄 2. 請萊拉施展魔法讓看門狼睡著，無聲潛入洞穴！', action: () => finishDemo('magic') },
+      { label: '🌊 3. 利用溪流水聲掩護，貼著岩壁悄悄摸進洞穴 (隱匿)', action: () => finishDemo('stealth') },
+      { label: '🔄 4. 重新體驗三豬小徑開場', action: () => resetGame() }
     ]);
   }
 
   function finishDemo(style) {
     const r = rollD20(3, "潛入洞穴檢定");
+    showFx(`🎉 檢定成功 (${r.total})！成功潛入克拉格莫洞穴！`);
+    ['tok-gob1', 'tok-gob2', 'tok-gob3'].forEach(id => {
+      document.getElementById(id).classList.add('asleep');
+      document.getElementById(id).textContent = '💤';
+    });
+
     addBubble('dm-stream', 'player', '🛡️ 玩家（人類聖騎士）', `潛入行動 (${r.total})`,
-      style === 'animal' ? '我從背包拿出兩塊風乾牛肉拋給餓狼，趁牠們低頭啃食時帶著萊拉悄然溜進洞口！' :
+      style === 'animal' ? '我拿出風乾牛肉拋給餓狼，趁牠們低頭啃食時帶著萊拉悄然溜進洞口！' :
       style === 'magic' ? '我對萊拉比了個手勢，由她施展奧術催眠餓狼，兩人完美配合潛入洞穴！' :
       '我們順著潺潺溪水聲的掩護，貼著西側潮濕的岩壁成功潛入克拉格莫洞穴內部！');
 
-    addBubble('dm-stream', 'dm', '🧙‍♂️ 地下城主 (DM)', '成功潛入克拉格莫洞穴！',
-      '你們完美避開了洞口的警戒，順利潛入昏暗的洞穴長廊！前方的石階上閃爍著火把微光，武士希爾達的身影就在不遠處的囚室中……<br><br>💡 <strong>提示</strong>：你可以繼續在下方輸入框自由輸入任何對話與行動，跟萊拉一起繼續探索洞穴！');
+    addBubble('dm-stream', 'dm', '🧙‍♂️ 地下城主 (DM)', '潛入成功！自由探索開啟',
+      '你們完美避開了洞口警戒，進入幽暗的洞穴長廊！前方的石階上閃爍著火把微光，武士希爾達就在不遠處的囚室中……<br><br>💡 <strong>你可以繼續在下方輸入框打字，跟萊拉自由對話或推進後續冒險！</strong>');
 
-    addBubble('dm-stream', 'lyra', '🧝‍♀️ 隊友【萊拉 (Lyra)】（獨立視窗同步）', '點亮《光亮術 Light》',
-      '萊拉輕輕敲了敲法杖頂端的水晶，施展戲法《光亮術 (Light)》照亮幽暗的洞穴通道，嘴角帶著自信的微笑看向你：「配合得還不賴嘛，大塊頭！接下來的洞穴探險你打算怎麼走？直接打字告訴本小姐吧！」');
+    addBubble('dm-stream', 'lyra', '🧝‍♀️ 隊友【萊拉 (Lyra)】', '點亮《光亮術 Light》',
+      '萊拉輕敲法杖頂端的水晶，施展戲法《光亮術》照亮幽暗的通道，露出自信的微笑：「配合得還不賴嘛，大塊頭！接下來的洞穴探險你打算怎麼走？直接打字告訴本小姐吧！」');
   }
 
-  // Free Text Input (Supports Built-in Smart Engine OR Live Gemini API)
   async function handleFreeInput() {
     const input = document.getElementById('free-input');
     const text = input.value.trim();
@@ -875,6 +1123,7 @@
     input.value = '';
 
     const r = rollD20(2, "自由行動檢定");
+    showFx(`🎲 行動檢定：${r.total} 點！`);
     addBubble('dm-stream', 'player', '🛡️ 玩家（人類聖騎士）', `自由行動 (🎲 ${r.total})`, text);
 
     if (state.apiKey) {
@@ -890,16 +1139,16 @@
 
     setTimeout(() => {
       const dmReply = rollVal >= 12
-        ? `你的行動「<strong>${userText}</strong>」檢定獲得了 <strong>${rollVal} 點（成功！）</strong>。周圍的環境與敵人都在你的掌控之中，為隊伍創造了絕佳的戰術優勢！`
-        : `你嘗試執行「<strong>${userText}</strong>」（檢定 <strong>${rollVal} 點</strong>），雖然過程有些驚險，但萊拉及時在後方替你補足了破綻！`;
+        ? `你的行動「<strong>${userText}</strong>」檢定獲得了 <strong>${rollVal} 點（成功！）</strong>，為隊伍創造了絕佳的戰術優勢！`
+        : `你嘗試執行「<strong>${userText}</strong>」（檢定 <strong>${rollVal} 點</strong>），雖然有些驚險，但萊拉及時在後方替你補足了破綻！`;
 
       addBubble('dm-stream', 'dm', '🧙‍♂️ 地下城主 (DM)', `判定結果: ${rollVal}`, dmReply);
 
       addBubble('lyra-stream', 'lyra', '💭 萊拉的內心思考 (Subagent)', '即時互動分析',
-        `<em>「這傢伙居然做出『${userText}』這種舉動！雖然總是這麼出人意料，但既然他都行動了，本小姐一定要用《火焰箭》跟上他的節奏！」</em>`);
+        `<em>「這傢伙居然做出『${userText}』這種舉動！既然他都行動了，本小姐一定要用《火焰箭》跟上他的節奏！」</em>`);
 
       addBubble('dm-stream', 'lyra', '🧝‍♀️ 隊友【萊拉 (Lyra)】（獨立視窗同步）', '即時回應與掩護',
-        `「喂！你每次行動前能不能先跟本小姐商量一下啊！」萊拉雖然嘴上習慣性吐槽，但手中的星紋法杖早已亮起紅光，緊跟在你的身側支援：「不過既然你都決定『${userText}』了，本小姐自然會替你守住後背！放手去做吧，肌肉腦袋！」`);
+        `「喂！你每次行動前能不能先跟本小姐商量一下啊！」萊拉雖然嘴上吐槽，但手中的星紋法杖早已亮起紅光，緊跟在你身側支援：「不過既然你都決定『${userText}』了，本小姐自然會替你守住後背！放手去做吧，肌肉腦袋！」`);
     }, 350);
   }
 
@@ -949,7 +1198,6 @@
     state.gold = 15;
     state.lyraHp = 7;
     state.lyraSlots = 1;
-    state.goblinsLeft = 4;
     initGame();
   }
 
@@ -962,10 +1210,10 @@
     const btn = document.getElementById('api-btn');
     if (val) {
       btn.classList.add('api-active');
-      btn.textContent = '🟢 Gemini 雙 Agent 即時模式：已啟用';
+      btn.textContent = '🟢 Gemini 即時模式：已啟用';
     } else {
       btn.classList.remove('api-active');
-      btn.textContent = '🤖 切換 Gemini AI 即時生成模式';
+      btn.textContent = '🤖 Gemini 即時模式';
     }
     closeModal('api-modal');
   }
