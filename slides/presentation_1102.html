@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>11/02 專案分享：AI 雙視窗 D&D 跑團與獨立隊友系統</title>
+<style>
+  @page {
+    size: 16in 9in;
+    margin: 0;
+  }
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", sans-serif;
+    background-color: #0f172a;
+    color: #f8fafc;
+  }
+  .slide {
+    width: 1280px;
+    height: 720px;
+    padding: 56px 72px;
+    position: relative;
+    overflow: hidden;
+    page-break-after: always;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: radial-gradient(circle at top right, #1e1b4b 0%, #0f172a 70%);
+    border-bottom: 1px solid #334155;
+  }
+  @media screen {
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 32px;
+      padding: 32px 0;
+      background: #020617;
+    }
+    .slide {
+      box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+      border-radius: 16px;
+      border: 1px solid #334155;
+    }
+  }
+  @media print {
+    .slide {
+      width: 100vw;
+      height: 100vh;
+      border: none;
+      border-radius: 0;
+    }
+  }
+  .slide-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #4f46e5;
+    padding-bottom: 16px;
+    margin-bottom: 24px;
+  }
+  .slide-tag {
+    background: #4f46e5;
+    color: #ffffff;
+    padding: 6px 16px;
+    border-radius: 999px;
+    font-size: 18px;
+    font-weight: bold;
+    letter-spacing: 1px;
+  }
+  .slide-num {
+    color: #94a3b8;
+    font-size: 20px;
+    font-weight: bold;
+  }
+  h1 {
+    font-size: 56px;
+    line-height: 1.25;
+    margin: 0 0 20px 0;
+    background: linear-gradient(90deg, #ffffff, #a5b4fc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  h2 {
+    font-size: 40px;
+    margin: 0;
+    color: #f8fafc;
+  }
+  .subtitle {
+    font-size: 26px;
+    color: #cbd5e1;
+    line-height: 1.5;
+  }
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    flex: 1;
+    align-items: stretch;
+  }
+  .grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 28px;
+    flex: 1;
+    align-items: stretch;
+  }
+  .card {
+    background: rgba(30, 41, 59, 0.75);
+    border: 1px solid #475569;
+    border-radius: 16px;
+    padding: 28px 32px;
+    display: flex;
+    flex-direction: column;
+  }
+  .card-accent {
+    border-top: 5px solid #6366f1;
+  }
+  .card-gold {
+    border-top: 5px solid #f59e0b;
+    background: rgba(30, 41, 59, 0.85);
+  }
+  .card h3 {
+    font-size: 28px;
+    margin: 0 0 14px 0;
+    color: #a5b4fc;
+  }
+  .card-gold h3 {
+    color: #fcd34d;
+  }
+  .card p, .card li {
+    font-size: 22px;
+    line-height: 1.55;
+    color: #e2e8f0;
+  }
+  ul {
+    margin: 0;
+    padding-left: 28px;
+  }
+  li {
+    margin-bottom: 12px;
+  }
+  .quote-box {
+    background: rgba(15, 23, 42, 0.9);
+    border-left: 6px solid #f59e0b;
+    padding: 22px 28px;
+    border-radius: 0 12px 12px 0;
+    font-size: 21px;
+    line-height: 1.6;
+    color: #fef3c7;
+    margin-top: 16px;
+  }
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    color: #64748b;
+    font-size: 16px;
+    padding-top: 12px;
+  }
+  .badge-row {
+    display: flex;
+    gap: 16px;
+    margin-top: 28px;
+  }
+  .badge {
+    background: rgba(99, 102, 241, 0.2);
+    border: 1px solid #6366f1;
+    color: #c7d2fe;
+    padding: 10px 22px;
+    border-radius: 10px;
+    font-size: 20px;
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+
+<!-- Slide 1: Cover -->
+<div class="slide">
+  <div class="slide-header">
+    <span class="slide-tag">2026 / 11 / 02 點子分享</span>
+    <span class="slide-num">01 / 07</span>
+  </div>
+  <div style="margin: auto 0;">
+    <h1>🎲 AI 雙視窗《龍與地下城》<br>當地下城主遇上獨立 AI 隊友</h1>
+    <p class="subtitle">
+      用 Multi-Agent 子代理架構解決單人跑團痛點：<br>
+      一個聊天室當 DM 控場，另一個獨立聊天室當你專屬的無劇透隊友！
+    </p>
+    <div class="badge-row">
+      <span class="badge">⚔️ D&amp;D 5e 規則</span>
+      <span class="badge">🧝‍♀️ 獨立 Subagent 隊友</span>
+      <span class="badge">🔒 記憶隔離防劇透</span>
+    </div>
+  </div>
+  <div class="footer">
+    <span>AI Multi-Agent D&amp;D TRPG Companion System</span>
+    <span>11/02 Idea Pitch</span>
+  </div>
+</div>
+
+<!-- Slide 2: 痛點與做什麼 (What We Built) -->
+<div class="slide">
+  <div class="slide-header">
+    <h2>1. 做什麼：為什麼需要「兩個聊天室」玩 D&amp;D？</h2>
+    <span class="slide-num">02 / 07</span>
+  </div>
+  <div class="grid-2">
+    <div class="card card-accent">
+      <h3>❌ 傳統單一聊天室的痛點</h3>
+      <ul>
+        <li><strong>上帝視角劇透 (Metagaming)</strong>：同一個 AI 同時當 DM 又當隊友，隊友會「偷看劇本」提前知道前面有哥布林埋伏。</li>
+        <li><strong>角色嚴重割裂</strong>：同一個視窗一下冷靜報數據、一下自己跟自己演戲，缺乏真實隊友互動感。</li>
+      </ul>
+    </div>
+    <div class="card card-gold">
+      <h3>✅ 我們的雙視窗 Multi-Agent 方案</h3>
+      <ul>
+        <li><strong>🧙‍♂️ 主聊天室（地下城主 DM）</strong>：掌控《失落的礦坑》世界觀、怪物行動、D20 檢定與隊伍狀態欄。</li>
+        <li><strong>🧝‍♀️ 獨立子視窗（AI 隊友：萊拉）</strong>：在獨立 Subagent 空間運作，<strong>只知道玩家看得到的畫面</strong>，再同步台詞回主視窗！</li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer">
+    <span>一、做什麼 (What We Built)</span>
+    <span>11/02 Idea Pitch</span>
+  </div>
+</div>
+
+<!-- Slide 3: 給誰用 (Target Audience) -->
+<div class="slide">
+  <div class="slide-header">
+    <h2>2. 給誰用：誰最需要這套系統？</h2>
+    <span class="slide-num">03 / 07</span>
+  </div>
+  <div class="grid-3">
+    <div class="card card-accent">
+      <h3>🐺 找不到團的孤狼玩家</h3>
+      <p>傳統 D&amp;D 跑團要湊齊 4～5 人、約好幾個小時。現在隨時打開聊天室，就有 DM 加一位個性鮮明的 AI 隊友陪你冒險。</p>
+    </div>
+    <div class="card card-accent">
+      <h3>🌱 想入坑的 TRPG 新手</h3>
+      <p>不用先啃完幾百頁的規則書！透過選單快速創角，頂部自動維護 HP、AC 與法術位狀態欄，專注享受劇情決策。</p>
+    </div>
+    <div class="card card-gold">
+      <h3>🤖 多代理遊戲開發者</h3>
+      <p>展示如何利用 <strong>Context Isolation（記憶隔離）</strong>打造「資訊不對稱」的遊戲體驗，可延伸至劇本殺、狼人殺。</p>
+    </div>
+  </div>
+  <div class="footer">
+    <span>二、給誰用 (Target Audience)</span>
+    <span>11/02 Idea Pitch</span>
+  </div>
+</div>
+
+<!-- Slide 4: 怎麼跟 AI 一起做 (How We Collaborated) -->
+<div class="slide">
+  <div class="slide-header">
+    <h2>3. 怎麼跟 AI 一起做：從一句話到雙代理協作</h2>
+    <span class="slide-num">04 / 07</span>
+  </div>
+  <div class="grid-2">
+    <div class="card card-accent">
+      <h3>🛠️ 對話式敏捷開發 4 步驟</h3>
+      <ul>
+        <li><strong>Step 1 提出點子</strong>：「我想在這個聊天室玩龍與地下城」</li>
+        <li><strong>Step 2 架構突破</strong>：「能不能開另一個聊天室當我的隊友？」👉 選定<strong>方案 A（召喚獨立 Subagent）</strong></li>
+        <li><strong>Step 3 選單配置</strong>：30 秒選定「人類聖騎士 ＋ 傲嬌精靈女法師萊拉 ＋ 失落的礦坑」</li>
+        <li><strong>Step 4 自動召喚</strong>：AI 自動定義 <code>dnd_companion_lyra</code> 並傳送開場情境！</li>
+      </ul>
+    </div>
+    <div class="card card-gold">
+      <h3>🔄 雙聊天室運作架構</h3>
+      <p>1. <strong>DM 視窗</strong> 描述場景（前方 50 呎有兩匹插滿黑羽箭的死馬）</p>
+      <p>2. <strong>背景傳訊</strong> 將「無劇透感官描述」傳給萊拉的獨立視窗</p>
+      <p>3. <strong>萊拉視窗</strong> 獨立思考並施放《法師護甲》，回傳傲嬌吐槽與戰術建議</p>
+      <p>4. <strong>玩家決策</strong> 與萊拉配合展開行動！</p>
+    </div>
+  </div>
+  <div class="footer">
+    <span>三、怎麼跟 AI 一起做 (How We Collaborated with AI)</span>
+    <span>11/02 Idea Pitch</span>
+  </div>
+</div>
+
+<!-- Slide 5: 實機展示 (Actual Demo Output) -->
+<div class="slide">
+  <div class="slide-header">
+    <h2>✨ 實機對話展示：三豬小徑的伏擊與隊友萊拉</h2>
+    <span class="slide-num">05 / 07</span>
+  </div>
+  <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+    <div class="card card-accent" style="padding: 20px 28px; margin-bottom: 16px;">
+      <p style="margin: 0; font-size: 20px;">
+        <strong>📜 隊伍狀態欄</strong>：🛡️ <strong>人類聖騎士 (Lv.1)</strong> HP 12/12, AC 18 ｜ 🪄 <strong>萊拉・星語 (高等精靈法師 Lv.1)</strong> HP 7/7, AC 15（已開法師護甲）
+      </p>
+    </div>
+    <div class="quote-box">
+      <strong>🧝‍♀️ 獨立視窗【萊拉 (Lyra)】實際生成的反應：</strong><br><br>
+      「唔……這該死的破馬車是完全沒有避震可言嗎？你看，泥巴都濺到我從銀月城帶來的星紋法袍下擺了！」萊拉嫌棄地唸了個《魔法伎倆》把污漬清乾淨，目光卻突然凝結在前方五十呎處的死馬上。<br><br>
+      她尖長的精靈耳朵警覺抖動，連忙拉住你的衣袖壓低聲音：「<strong>喂！停下馬車，別再往前傻衝了！那種粗糙噁心的黑羽箭，絕對是哥布林的傑作！</strong>」她迅速劃出奧術符文施放《法師護甲》(AC 升至 15)，另一手凝聚起《火焰箭》火星：「<strong>本小姐的防護已經準備好了！你這個穿鐵罐頭的肌肉腦袋打算怎麼辦？要是敢讓那些髒兮兮的小怪物靠近我半步，你就死定了！</strong>」
+    </div>
+  </div>
+  <div class="footer">
+    <span>實機跑團紀錄展示 (Live Session Excerpt)</span>
+    <span>11/02 Idea Pitch</span>
+  </div>
+</div>
+
+<!-- Slide 6: 查了什麼 (What We Researched) -->
+<div class="slide">
+  <div class="slide-header">
+    <h2>4. 查了什麼：背後的規則與技術設計</h2>
+    <span class="slide-num">06 / 07</span>
+  </div>
+  <div class="grid-3">
+    <div class="card card-accent">
+      <h3>📘 D&amp;D 5e SRD 規則</h3>
+      <ul>
+        <li>1 級聖騎士（鎖子甲＋盾牌 AC 18）與 1 級精靈法師數值。</li>
+        <li>《法師護甲》計算（13 + 敏捷調整值 2 = AC 15）與一環法術位消耗。</li>
+        <li>戲法《魔法伎倆》與《火焰箭》的敘事融合。</li>
+      </ul>
+    </div>
+    <div class="card card-accent">
+      <h3>🗺️ 《失落的礦坑》模組</h3>
+      <ul>
+        <li>經典官方入門戰役 <em>Lost Mine of Phandelver</em>。</li>
+        <li>矮人僱主岡德林（Gundren）與武士希爾達（Sildar）背景。</li>
+        <li>第一章「三豬小徑（Triboar Trail）黑羽箭死馬伏擊」場景還原。</li>
+      </ul>
+    </div>
+    <div class="card card-gold">
+      <h3>🔒 Subagent 資訊隔離</h3>
+      <ul>
+        <li>設計嚴格的 Player-Only System Prompt。</li>
+        <li>禁止子代理自行編造劇情結果或替怪物做決定。</li>
+        <li>確保隊友與玩家處於對等的未知探索狀態。</li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer">
+    <span>四、查了什麼 (What We Researched &amp; Referenced)</span>
+    <span>11/02 Idea Pitch</span>
+  </div>
+</div>
+
+<!-- Slide 7: 下一步 (Next Steps) -->
+<div class="slide">
+  <div class="slide-header">
+    <h2>5. 下一步：未來擴充藍圖</h2>
+    <span class="slide-num">07 / 07</span>
+  </div>
+  <div class="grid-3">
+    <div class="card card-gold">
+      <h3>🎲 1. 完整回合制戰鬥</h3>
+      <p>推進三豬小徑遭遇戰，加入自動 D20 感知檢定、先攻順序（Initiative）與哥布林伏擊戰術互動。</p>
+    </div>
+    <div class="card card-accent">
+      <h3>🍻 2. 擴充至四人標準小隊</h3>
+      <p>再召喚「矮人狂戰士巴爾」與「提夫林盜賊芬恩」兩個獨立視窗，讓多位 AI 隊友之間也能互相鬥嘴與打配合！</p>
+    </div>
+    <div class="card card-accent">
+      <h3>💾 3. 視覺化與長篇存檔</h3>
+      <p>將角色卡、HP、法術位與戰利品自動存入 JSON 狀態檔，並結合互動式網頁骰子盤與戰場小地圖。</p>
+    </div>
+  </div>
+  <div class="footer">
+    <span>五、下一步 (Next Steps) — Thank You!</span>
+    <span>11/02 Idea Pitch</span>
+  </div>
+</div>
+
+</body>
+</html>
